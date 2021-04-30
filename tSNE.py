@@ -7,46 +7,40 @@ import os
 import re
 
 
-# load randomly generated test data
-def makeNormalCluster(center, std, size):
-    noise = np.random.normal(0, std, (size, center.shape[0]))
-    return noise + center
+REPS_DIR = "run_results/test_reps.npy"
+REPS_AUG_DIR = "run_results/test_reps_aug.npy"
+LIN_DIR = "run_results/test_linear_cl.npy"
 
+reps = np.load(REPS_DIR)
+reps_aug = np.load(REPS_AUG_DIR)
+lins = np.load(LIN_DIR)
 
-dim = 50
-size = 1000
-center = np.ones(dim)
-center[0] = 1
-std = np.sqrt(np.random.uniform(0.1, 100, dim))
-std[0] = 0.1
-
-c1 = makeNormalCluster(center, std, size)
-c2 = makeNormalCluster(-center, std, size)
-
-data = np.concatenate([c1, c2])
+data = reps
+# data = np.concatenate([reps, reps_aug])
 
 # visualize latent representations with t-SNE with different parameters
-perplexities = np.arange(0, 7) * 15 + 10    # std is 30
-learning_rates = np.array([200])            # std is 200
-
+perplexities = []  # np.arange(0, 1) * 15 + 10    # std is 30
+learning_rates = np.array([200])  # std is 200
+size = 10000
 export_dir = "tSNE-visualization"
 forceOverride = True
 
-if not os.path.isdir(export_dir+"/pdf"):
-    os.mkdir(export_dir+"/pdf")
-if not os.path.isdir(export_dir+"/npy"):
-    os.mkdir(export_dir+"/npy")
+if not os.path.isdir(export_dir + "/pdf"):
+    os.mkdir(export_dir + "/pdf")
+if not os.path.isdir(export_dir + "/npy"):
+    os.mkdir(export_dir + "/npy")
 
 for p in perplexities:
     for lr in learning_rates:
         filename = f'tSNE_p={p}_lr={lr}.npy'
-        if forceOverride or filename not in os.listdir(export_dir+"/npy"):
-            np.save(f'{export_dir}/npy/{filename}', TSNE(n_components=2, perplexity=p, learning_rate=lr).fit_transform(data))
+        if forceOverride or filename not in os.listdir(export_dir + "/npy"):
+            np.save(f'{export_dir}/npy/{filename}',
+                    TSNE(n_components=2, perplexity=p, learning_rate=lr).fit_transform(data))
             print("Saved tSNE components in", filename)
         else:
-            print("Skipped",p,lr,"| ",filename, "already exists!")
+            print("Skipped", p, lr, "| ", filename, "already exists!")
 
-for filename in os.listdir(export_dir+"/npy"):
+for filename in os.listdir(export_dir + "/npy"):
 
     if filename[:5] == "tSNE_" and filename[-4:] == ".npy":
         s = filename.split(".")[0].split("_")[1:]
