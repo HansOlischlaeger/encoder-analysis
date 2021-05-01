@@ -31,9 +31,9 @@ size = reps.shape[0] // 2
 
 print("Loaded all files successfully.", file=logfile, flush=True)
 
-data = reps#[:2000, :100]
+data = reps
 
-# visualize latent representations with t-SNE with different parameters
+# different parameters for t-SNE and setup
 perplexities = np.arange(0, 1) * 15 + 10  # std is 30
 learning_rates = np.array([200])  # std is 200
 
@@ -77,6 +77,7 @@ for filename in os.listdir(expt_dir + "analysis/tSNE_npy/"):
     else:
         print("unexpected file in tSNE_npy folder:", filename, file=logfile, flush=True)
 
+# generate histograms for 1dim results of the linear classifier
 iqr = np.percentile(lins[:size], 75) - np.percentile(lins[:size], 25)
 binwidth = iqr * 2 * size**-0.333
 plt.hist(lins[:size], bins=np.arange(0, 1 + binwidth, binwidth), alpha=0.99, color='C0', label='class 1')
@@ -91,7 +92,6 @@ print(file=logfile, flush=True)
 print("= end of plot-analysis.py ======================", file=logfile, flush=True)
 print("================================================", file=logfile, flush=True)
 print(file=logfile, flush=True)
-
 logfile.close()
 
 with open("logfile.txt", "r") as log:
