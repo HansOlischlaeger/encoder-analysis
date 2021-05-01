@@ -4,7 +4,10 @@
 
 import numpy as np
 from sklearn.manifold import TSNE
+import matplotlib
+matplotlib.use("pdf")
 from matplotlib import pyplot as plt
+
 import os
 
 logfile = open("logfile.txt", "w")  # "a")
@@ -68,8 +71,9 @@ for filename in os.listdir(expt_dir + "analysis/tSNE_npy/"):
         plt.tight_layout()
         pdfpath = f'{expt_dir}analysis/{filename.split(".")[0]}.pdf'
         plt.savefig(pdfpath)
+        plt.close()
         print("Saved tSNE pdf in", pdfpath, file=logfile, flush=True)
-        plt.show()
+
     else:
         print("unexpected file in tSNE_npy folder:", filename, file=logfile, flush=True)
 
@@ -80,7 +84,8 @@ plt.hist(lins[size:], bins=np.arange(0, 1 + binwidth, binwidth), alpha=0.8, colo
 pdfpath = expt_dir + 'analysis/lin_hist.pdf'
 plt.tight_layout()
 plt.savefig(pdfpath)
-plt.show()
+plt.close()
+print("Saved lin hist pdf in", pdfpath, file=logfile, flush=True)
 
 print(file=logfile, flush=True)
 print("= end of plot-analysis.py ======================", file=logfile, flush=True)

@@ -11,7 +11,7 @@ import extargs as args
 logfile = open( args.logfile, "a" )
 print( "================================================", file=logfile, flush=True )
 print( "= plot-analysis.py =============================", file=logfile, flush=True )
-print(, file=logfile, flush=True )
+print(file=logfile, flush=True )
 
 expt_tag=args.expt
 expt_dir="/remote/gpu04/olischlaeger/projects/rep_learning/experiments/"+expt_tag+"/"
