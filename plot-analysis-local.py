@@ -5,6 +5,7 @@
 import numpy as np
 from sklearn.manifold import TSNE
 import matplotlib
+
 matplotlib.use("pdf")
 from matplotlib import pyplot as plt
 
@@ -22,19 +23,20 @@ expt_dir = "" + expt_tag + "/"
 REPS_DIR = expt_dir + "test_reps.npy"
 REPS_AUG_DIR = expt_dir + "test_reps_aug.npy"
 LIN_DIR = expt_dir + "test_linear_cl.npy"
+LAB_DIR = expt_dir + "test_lbs.npy"
 
 reps = np.load(REPS_DIR)
 reps_aug = np.load(REPS_AUG_DIR)
-lins = np.load(LIN_DIR)
-
-size = reps.shape[0] // 2
+telin = np.load(LIN_DIR)
+telab = np.load(LAB_DIR)
+print("telab check:", np.count_nonzero(telab), np.count_nonzero(telab == 0), np.count_nonzero(telab)/np.count_nonzero(telab == 0))
 
 print("Loaded all files successfully.", file=logfile, flush=True)
 
 data = reps
 
 # different parameters for t-SNE and setup
-perplexities = np.arange(0, 1) * 15 + 10  # std is 30
+perplexities = np.arange(0, 7) * 15 + 10  # std is 30
 learning_rates = np.array([200])  # std is 200
 
 forceOverride = False
@@ -65,8 +67,10 @@ for filename in os.listdir(expt_dir + "analysis/tSNE_npy/"):
         plt.suptitle("Visualization with t-SNE")
         plt.title(' '.join(s))  # make a title with the parameters from file name information
 
-        plt.scatter(data_embedded[:, 0][:size], data_embedded[:, 1][:size], alpha=0.5, color='C0', label='class 1')
-        plt.scatter(data_embedded[:, 0][size:], data_embedded[:, 1][size:], alpha=0.2, color='C3', label='class 2')
+        plt.scatter(data_embedded[:, 0][telab == 0], data_embedded[:, 1][telab == 0], alpha=0.5, color='C0',
+                    label='qcd')
+        plt.scatter(data_embedded[:, 0][telab == 1], data_embedded[:, 1][telab == 1], alpha=0.2, color='C3',
+                    label='top')
         plt.legend()
         plt.tight_layout()
         pdfpath = f'{expt_dir}analysis/{filename.split(".")[0]}.pdf'
@@ -77,11 +81,14 @@ for filename in os.listdir(expt_dir + "analysis/tSNE_npy/"):
     else:
         print("unexpected file in tSNE_npy folder:", filename, file=logfile, flush=True)
 
-# generate histograms for 1dim results of the linear classifier
-iqr = np.percentile(lins[:size], 75) - np.percentile(lins[:size], 25)
-binwidth = iqr * 2 * size**-0.333
-plt.hist(lins[:size], bins=np.arange(0, 1 + binwidth, binwidth), alpha=0.99, color='C0', label='class 1')
-plt.hist(lins[size:], bins=np.arange(0, 1 + binwidth, binwidth), alpha=0.8, color='C3', label='class 2')
+dists = [telin[telab == 0].squeeze(), telin[telab == 1].squeeze()]
+print(dists[0].shape, dists[1].shape)
+iqr = max(np.percentile(telin[telab == 1], 75) - np.percentile(telin[telab == 1], 25),
+          np.percentile(telin[telab == 0], 75) - np.percentile(telin[telab == 0], 25))
+binwidth = iqr * 2 * min(np.count_nonzero(telab), np.count_nonzero(telab == 0)) ** -0.333
+plt.hist(dists, bins=np.arange(min(telin), max(telin) + binwidth, binwidth), color=['C0', 'C3'], label=["qcd", "top"],
+         histtype="step")
+plt.legend()
 pdfpath = expt_dir + 'analysis/lin_hist.pdf'
 plt.tight_layout()
 plt.savefig(pdfpath)

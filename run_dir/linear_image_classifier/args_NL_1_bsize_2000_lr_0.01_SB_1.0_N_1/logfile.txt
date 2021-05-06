@@ -1,0 +1,169 @@
+logfile initialised
+experiment: linear_image_classifier/NL_1_sb_1.0_bsize_2000_lr_0.01_1
+loading data
+creating labelled dataset and shuffling
+splitting into train/test
+training data shape: (36000, 1600)
+testing data shape: (4000, 1600)
+training labels shape: (36000,)
+testing labels shape: (4000,)
+--- network architecture ---
+input size: 1600
+number of hidden layers: 0
+output size: 1
+--- network architecture ---
+learning rate: 0.01
+initialising the network
+starting training loop, running for 20 epochs
+epoch: 0
+loss: 0.6934925
+epoch: 1
+loss: 0.6933453
+epoch: 2
+loss: 0.6932006
+epoch: 3
+loss: 0.6930684
+epoch: 4
+loss: 0.6929514
+epoch: 5
+loss: 0.6928455
+epoch: 6
+loss: 0.6927482
+epoch: 7
+loss: 0.6926577
+epoch: 8
+loss: 0.6925733
+epoch: 9
+loss: 0.69249415
+epoch: 10
+loss: 0.6924195
+epoch: 11
+loss: 0.69234943
+epoch: 12
+loss: 0.692283
+epoch: 13
+loss: 0.6922201
+epoch: 14
+loss: 0.6921604
+epoch: 15
+loss: 0.69210374
+epoch: 16
+loss: 0.69204986
+epoch: 17
+loss: 0.6919985
+epoch: 18
+loss: 0.6919496
+epoch: 19
+loss: 0.69190294
+training DONE
+evaluating trained network on testing data
+auc: 0.6938804823186769
+imtafe: 4.09741550695825
+saving output
+END of run
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.
+logfile continued by lrp_playground.py
+model loaded.

@@ -45,8 +45,8 @@ print("loading data", flush=True, file=logfile)
 
 # load jet image data
 
-df_pt_sig = pd.read_hdf(args.sig_path, key='table', start=0, stop=1000)  # 100000
-df_pt_bg = pd.read_hdf(args.bkg_path, key='table', start=0, stop=1000)  # 100000
+df_pt_sig = pd.read_hdf(args.sig_path, key='table', start=0, stop=20000)  # 100000
+df_pt_bg = pd.read_hdf(args.bkg_path, key='table', start=0, stop=20000)  # 100000
 
 sdat = np.zeros((df_pt_sig.shape[0], 1600))
 for i in range(df_pt_sig.to_numpy().shape[0]):
@@ -160,8 +160,12 @@ print("saving output", flush=True, file=logfile)
 
 # save out results
 
-np.save(expt_dir + "losses.npy", losses)
-np.save(expt_dir + "out_dat.npy", out_dat)
-np.save(expt_dir + "out_lbs.npy", out_lbs)
+np.save(expt_dir + "losses.npy", losses)        # loss development during training
+np.save(expt_dir + "out_dat.npy", out_dat)      # guesses of fcn
+np.save(expt_dir + "tedat.npy", tedat)          # test input
+np.save(expt_dir + "telab.npy", telab)          # test true labels
+
+# save state dict of the model for later lrp
+torch.save(fcn.state_dict(), expt_dir + "state_dict.pt")
 
 print("END of run", flush=True, file=logfile)

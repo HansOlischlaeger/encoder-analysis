@@ -11,6 +11,6 @@ output_size = 1
 sbratio = 1.0
 n_epochs = 20
 learning_rate = 0.01
-batch_size = 20# 2000
+batch_size = 1000# 2000
 # temperature =
 expt = "linear_image_classifier/NL_1_sb_1.0_bsize_2000_lr_0.01_1"

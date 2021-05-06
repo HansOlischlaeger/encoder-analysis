@@ -51,8 +51,8 @@ telab = np.load(expt_dir + "telab.npy")  # test true labels
 epsilon = 0
 
 
-def rho(layer):
-    return torch.minimum(layer, torch.zeros_like(layer))  # only use positive contribution
+def rho(weight):
+    return torch.maximum(weight, torch.zeros_like(weight))  # only use positive contribution
 
 
 def relprop(a, layer, R):
@@ -65,37 +65,74 @@ def relprop(a, layer, R):
     s = R / (z + 1e-9)
     (z * s.data).sum().backward()
     c = a.grad
-    #print(a, c)
+    # print(a, c)
     R = a * c
 
     return R
+
 
 def relprop_2(a, layer, R):
-    #for k in range(len(a)): # for every output neuron -> here only once
+    # for k in range(len(a)): # for every output neuron -> here only once
 
-    z = epsilon + torch.dot(a, rho(layer).squeeze())
+    z = epsilon + torch.dot(a, rho(layer.weight).squeeze()) + rho(layer.bias).squeeze()
+
     s = R / z
-    c = layer * s
+
+    c = rho(layer.weight) * s
+    print(z > 0, s > 0, c > 0)
     R = a * c
     return R
+
 
 sigmoid = nn.Sigmoid()
 
-for i in range(10):
+for j in range(5):
+    i = 50 + j
     x = tedat[i, :]
-    x = torch.Tensor(x)#.view(-1, 1)
-    #print(fcn(x), sigmoid(fcn(x)))
-    #print(sigmoid(fcn(x)).unsqueeze(1), fcn.layer.weight)
-    #print(x,fcn.layer.weight)
-    R = relprop_2(x, fcn.layer.weight, sigmoid(fcn(x)))
-    n = np.array([ r.detach().numpy() for r in R]).reshape((40, 40))
+    x = torch.Tensor(x)  # .view(-1, 1)
+    # print(fcn(x), sigmoid(fcn(x)))
+    # print(sigmoid(fcn(x)).unsqueeze(1), fcn.layer.weight)
+    # print(x,fcn.layer.weight)
+
+    R = relprop_2(x, fcn.layer, fcn(x))
+
+    n = np.array([r.detach().numpy() for r in R]).reshape((40, 40))
+
     img = np.reshape(x, (40, 40))
-    fig, ax = plt.subplots(1,2)
+    fig, ax = plt.subplots(1, 2, figsize=(7, 3))
     ax1, ax2 = ax
+
     n1 = ax1.imshow(np.abs(img), cmap='Reds')
-    n2 = ax2.imshow(n, cmap='Blues')
-    plt.colorbar(n1, ax=ax1, shrink=0.4)# #location='left', anchor=(0, 0.3), shrink=0.7)
-    plt.colorbar(n2, ax=ax2, shrink=0.4)# #location='right', anchor=(0, 0.3), shrink=0.7)
+    n2 = ax2.imshow(np.abs(n), cmap='Greens')
+    ax1.title.set_text("original jet image")
+    ax2.title.set_text("'relevance'")
+    plt.suptitle("true label: " + str(telab[i]) + "      fcn label: " + str(round(out_dat[i, 0], 3)))
+    plt.colorbar(n1, ax=ax1, shrink=0.9)  # #location='left', anchor=(0, 0.3), shrink=0.7)
+    plt.colorbar(n2, ax=ax2, shrink=0.9)  # #location='right', anchor=(0, 0.3), shrink=0.7)
     fig.tight_layout()
+    fig.savefig(expt_dir + f"relevance_{j}.pdf")
     fig.show()
+
+w = np.array([fcn.layer.weight.detach().numpy() for r in R]).reshape((40, 40))
+print(telab[telab>0])
+b = tedat[telab == 0, :].reshape((-1, 40, 40)).sum(axis=0)
+s = tedat[telab == 1, :].reshape((-1, 40, 40)).sum(axis=0)
+
+fig, ax = plt.subplots(1, 3, figsize=(10, 3))
+ax1, ax2, ax3 = ax
+
+n1 = ax1.imshow(b, cmap='Blues')
+n2 = ax2.imshow(s, cmap='Reds')
+n3 = ax3.imshow(w, cmap='bwr_r')
+# plt.suptitle("true: " + str(telab[i]) + "      fcn: " + str(round(out_dat[i, 0], 3)))
+ax1.title.set_text("background")
+ax2.title.set_text("signal")
+ax3.title.set_text("weights")
+plt.colorbar(n1, ax=ax1, shrink=0.8)  # #location='left', anchor=(0, 0.3), shrink=0.7)
+plt.colorbar(n2, ax=ax2, shrink=0.8)  # #location='right', anchor=(0, 0.3), shrink=0.7)
+plt.colorbar(n3, ax=ax3, shrink=0.8)  # #location='right', anchor=(0, 0.3), shrink=0.7)
+fig.tight_layout()
+fig.savefig(expt_dir + f"weights.pdf")
+fig.show()
+
 # display input relevance as overlay on pictures
