@@ -51,8 +51,11 @@ telab = np.load(expt_dir + "telab.npy")  # test true labels
 epsilon = 0
 
 
-def rho(weight):
-    return torch.maximum(weight, torch.zeros_like(weight))  # only use positive contribution
+def rho(weight, pos):
+    if pos:
+        return torch.maximum(weight, torch.zeros_like(weight))  # only use positive contribution
+    else:
+        return torch.minimum(weight, torch.zeros_like(weight))  # only use negative contribution
 
 
 def relprop(a, layer, R):
@@ -71,15 +74,15 @@ def relprop(a, layer, R):
     return R
 
 
-def relprop_2(a, layer, R):
+def relprop_2(a, layer, R, pos=True):
     # for k in range(len(a)): # for every output neuron -> here only once
 
-    z = epsilon + torch.dot(a, rho(layer.weight).squeeze()) + rho(layer.bias).squeeze()
+    z = epsilon + torch.dot(a, rho(layer.weight, pos).squeeze()) + rho(layer.bias, pos).squeeze()
 
     s = R / z
 
-    c = rho(layer.weight) * s
-    print(z > 0, s > 0, c > 0)
+    c = rho(layer.weight, pos) * s
+
     R = a * c
     return R
 
@@ -94,16 +97,18 @@ for j in range(5):
     # print(sigmoid(fcn(x)).unsqueeze(1), fcn.layer.weight)
     # print(x,fcn.layer.weight)
 
-    R = relprop_2(x, fcn.layer, fcn(x))
+    Rp = relprop_2(x, fcn.layer, fcn(x), pos=True)
+    Rn = relprop_2(x, fcn.layer, fcn(x), pos=False)
 
-    n = np.array([r.detach().numpy() for r in R]).reshape((40, 40))
+    n_p = np.array([r.detach().numpy() for r in Rp]).reshape((40, 40))
+    n_n = np.array([r.detach().numpy() for r in Rn]).reshape((40, 40))
 
     img = np.reshape(x, (40, 40))
     fig, ax = plt.subplots(1, 2, figsize=(7, 3))
     ax1, ax2 = ax
 
     n1 = ax1.imshow(np.abs(img), cmap='Reds')
-    n2 = ax2.imshow(np.abs(n), cmap='Greens')
+    n2 = ax2.imshow(n_p-n_n, cmap='bwr', vmin=-np.max([np.abs(n_p), np.abs(n_n)]), vmax=np.max([np.abs(n_p), np.abs(n_n)]))
     ax1.title.set_text("original jet image")
     ax2.title.set_text("'relevance'")
     plt.suptitle("true label: " + str(telab[i]) + "      fcn label: " + str(round(out_dat[i, 0], 3)))
@@ -113,17 +118,17 @@ for j in range(5):
     fig.savefig(expt_dir + f"relevance_{j}.pdf")
     fig.show()
 
-w = np.array([fcn.layer.weight.detach().numpy() for r in R]).reshape((40, 40))
-print(telab[telab>0])
-b = tedat[telab == 0, :].reshape((-1, 40, 40)).sum(axis=0)
-s = tedat[telab == 1, :].reshape((-1, 40, 40)).sum(axis=0)
+w = fcn.layer.weight.detach().numpy().reshape((40, 40))
+
+b = tedat[telab == 0, :].reshape((-1, 40, 40)).mean(axis=0).clip(0,0.01)
+s = tedat[telab == 1, :].reshape((-1, 40, 40)).mean(axis=0).clip(0,0.01)
 
 fig, ax = plt.subplots(1, 3, figsize=(10, 3))
 ax1, ax2, ax3 = ax
 
 n1 = ax1.imshow(b, cmap='Blues')
 n2 = ax2.imshow(s, cmap='Reds')
-n3 = ax3.imshow(w, cmap='bwr_r')
+n3 = ax3.imshow(w, cmap='bwr')
 # plt.suptitle("true: " + str(telab[i]) + "      fcn: " + str(round(out_dat[i, 0], 3)))
 ax1.title.set_text("background")
 ax2.title.set_text("signal")

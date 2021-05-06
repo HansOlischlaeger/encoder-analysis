@@ -16,99 +16,51 @@ learning rate: 0.01
 initialising the network
 starting training loop, running for 20 epochs
 epoch: 0
-loss: 0.6934925
+loss: 0.6937435
 epoch: 1
-loss: 0.6933453
+loss: 0.6935416
 epoch: 2
-loss: 0.6932006
+loss: 0.6933566
 epoch: 3
-loss: 0.6930684
+loss: 0.6931874
 epoch: 4
-loss: 0.6929514
+loss: 0.69303966
 epoch: 5
-loss: 0.6928455
+loss: 0.6929104
 epoch: 6
-loss: 0.6927482
+loss: 0.69279546
 epoch: 7
-loss: 0.6926577
+loss: 0.69269234
 epoch: 8
-loss: 0.6925733
+loss: 0.69259864
 epoch: 9
-loss: 0.69249415
+loss: 0.692513
 epoch: 10
-loss: 0.6924195
+loss: 0.6924342
 epoch: 11
-loss: 0.69234943
+loss: 0.6923611
 epoch: 12
-loss: 0.692283
+loss: 0.6922933
 epoch: 13
-loss: 0.6922201
+loss: 0.6922299
 epoch: 14
-loss: 0.6921604
+loss: 0.69217056
 epoch: 15
-loss: 0.69210374
+loss: 0.6921148
 epoch: 16
-loss: 0.69204986
+loss: 0.6920622
 epoch: 17
-loss: 0.6919985
+loss: 0.69201255
 epoch: 18
-loss: 0.6919496
+loss: 0.69196564
 epoch: 19
-loss: 0.69190294
+loss: 0.6919211
 training DONE
 evaluating trained network on testing data
-auc: 0.6938804823186769
-imtafe: 4.09741550695825
+auc: 0.690377276822452
+imtafe: 4.072314049586777
 saving output
 END of run
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
-logfile continued by lrp_playground.py
-model loaded.
 logfile continued by lrp_playground.py
 model loaded.
 logfile continued by lrp_playground.py
