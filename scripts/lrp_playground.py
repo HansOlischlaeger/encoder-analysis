@@ -89,8 +89,8 @@ def relprop_2(a, layer, R, pos=True):
 
 sigmoid = nn.Sigmoid()
 
-for j in range(5):
-    i = 50 + j
+for j in range(10):
+    i = 100 + j
     x = tedat[i, :]
     x = torch.Tensor(x)  # .view(-1, 1)
     # print(fcn(x), sigmoid(fcn(x)))
@@ -103,8 +103,11 @@ for j in range(5):
     n_p = np.array([r.detach().numpy() for r in Rp]).reshape((40, 40))
     n_n = np.array([r.detach().numpy() for r in Rn]).reshape((40, 40))
 
+
+    # display input relevance as overlay on pictures
+
     img = np.reshape(x, (40, 40))
-    fig, ax = plt.subplots(1, 2, figsize=(7, 3))
+    fig, ax = plt.subplots(1, 2, figsize=(7, 4))
     ax1, ax2 = ax
 
     n1 = ax1.imshow(np.abs(img), cmap='Reds')
@@ -112,32 +115,41 @@ for j in range(5):
     ax1.title.set_text("original jet image")
     ax2.title.set_text("'relevance'")
     plt.suptitle("true label: " + str(telab[i]) + "      fcn label: " + str(round(out_dat[i, 0], 3)))
-    plt.colorbar(n1, ax=ax1, shrink=0.9)  # #location='left', anchor=(0, 0.3), shrink=0.7)
-    plt.colorbar(n2, ax=ax2, shrink=0.9)  # #location='right', anchor=(0, 0.3), shrink=0.7)
+    plt.colorbar(n1, ax=ax1, shrink=0.7)  # #location='left', anchor=(0, 0.3), shrink=0.7)
+    plt.colorbar(n2, ax=ax2, shrink=0.7)  # #location='right', anchor=(0, 0.3), shrink=0.7)
+
+    sp = round(n_p.sum(), 2)
+    print(sp)
+    plt.figtext(0.7, 0.01, f"relevance balance {n_p.sum():.2f} - {n_n.sum():.2f} = {np.sum(n_p-n_n):.2f}", ha="center", fontsize=10)
     fig.tight_layout()
     fig.savefig(expt_dir + f"relevance_{j}.pdf")
     fig.show()
 
+print("relevance plots saved.", file=logfile, flush=True)
+
 w = fcn.layer.weight.detach().numpy().reshape((40, 40))
 
-b = tedat[telab == 0, :].reshape((-1, 40, 40)).mean(axis=0).clip(0,0.01)
-s = tedat[telab == 1, :].reshape((-1, 40, 40)).mean(axis=0).clip(0,0.01)
+imgs = tedat.reshape(6000, 40, 40)
+b = imgs[telab == 0].mean(axis=0)
+s = imgs[telab == 1].mean(axis=0)
 
-fig, ax = plt.subplots(1, 3, figsize=(10, 3))
+fig, ax = plt.subplots(1, 3, figsize=(10, 3.5))
 ax1, ax2, ax3 = ax
 
 n1 = ax1.imshow(b, cmap='Blues')
 n2 = ax2.imshow(s, cmap='Reds')
-n3 = ax3.imshow(w, cmap='bwr')
+n3 = ax3.imshow(w, cmap='bwr', vmin=-np.max([np.abs(w)]), vmax=np.max([np.abs(w)]))
 # plt.suptitle("true: " + str(telab[i]) + "      fcn: " + str(round(out_dat[i, 0], 3)))
 ax1.title.set_text("background")
 ax2.title.set_text("signal")
 ax3.title.set_text("weights")
-plt.colorbar(n1, ax=ax1, shrink=0.8)  # #location='left', anchor=(0, 0.3), shrink=0.7)
-plt.colorbar(n2, ax=ax2, shrink=0.8)  # #location='right', anchor=(0, 0.3), shrink=0.7)
-plt.colorbar(n3, ax=ax3, shrink=0.8)  # #location='right', anchor=(0, 0.3), shrink=0.7)
+plt.figtext(0.8, 0.01, "performance of weights \nauc: 0.927, imtafe: 22.7", ha="center", fontsize=10)#, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
+plt.colorbar(n1, ax=ax1, shrink=0.6)  # #location='left', anchor=(0, 0.3), shrink=0.7)
+plt.colorbar(n2, ax=ax2, shrink=0.6)  # #location='right', anchor=(0, 0.3), shrink=0.7)
+plt.colorbar(n3, ax=ax3, shrink=0.6)  # #location='right', anchor=(0, 0.3), shrink=0.7)
 fig.tight_layout()
 fig.savefig(expt_dir + f"weights.pdf")
 fig.show()
 
-# display input relevance as overlay on pictures
+print("input/model plot saved.", file=logfile, flush=True)
+

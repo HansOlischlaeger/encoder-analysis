@@ -45,8 +45,8 @@ print("loading data", flush=True, file=logfile)
 
 # load jet image data
 
-df_pt_sig = pd.read_hdf(args.sig_path, key='table', start=0, stop=20000)  # 100000
-df_pt_bg = pd.read_hdf(args.bkg_path, key='table', start=0, stop=20000)  # 100000
+df_pt_sig = pd.read_hdf(args.sig_path, key='table', start=0, stop=30000)  # 100000
+df_pt_bg = pd.read_hdf(args.bkg_path, key='table', start=0, stop=30000)  # 100000
 
 sdat = np.zeros((df_pt_sig.shape[0], 1600))
 for i in range(df_pt_sig.to_numpy().shape[0]):
@@ -57,6 +57,8 @@ for i in range(df_pt_bg.to_numpy().shape[0]):
 
 input_size = int(40 * 40)
 
+del df_pt_bg
+del df_pt_sig
 print("creating labelled dataset and shuffling", flush=True, file=logfile)
 
 # creating the dataset
