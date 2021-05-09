@@ -100,56 +100,46 @@ def relprop_3(a, layer, R, pos=True):
 
 sigmoid = nn.Sigmoid()
 
-for j in range(1):
-    i = 100 + j
-    x = reps_te[i, :]
-    x = torch.Tensor(x)  # .view(-1, 1)
-    # print(fcn(x), sigmoid(fcn(x)))
-    # print(sigmoid(fcn(x)).unsqueeze(1), fcn.layer.weight)
-    # print(x,fcn.layer.weight)
+indices_b = np.where(telab == 0)[0][:5]
+indices_s = np.where(telab == 1)[0][:5]
 
-    # Rp = relprop_2(x, fcn.layer, fcn(x), pos=True)
-    # Rn = relprop_2(x, fcn.layer, fcn(x), pos=False)
+tmul = torch.mul(torch.Tensor(reps_te), fcn.layer.weight)
+extraord_i_relhigh = torch.where(tmul > 1.4)[0]
+extraord_i_rellow = torch.where(tmul < -1.59)[0]
+print("reps_te", reps_te.shape)
+extraord_i_rephigh = np.where(reps_te > 0.37)[0]
+#print("extraord_i_rephigh", extraord_i_rephigh[1], extraord_i_rephigh[0])
+extraord_i_replow = np.where(reps_te < -0.35)[0]
+extraord_i_fcnhigh = torch.where(fcn(torch.Tensor(reps_te)) > 0.9)[0]
 
-    R = torch.mul(x, fcn.layer.weight)
+r_border = max(abs(torch.max(tmul).detach()), abs(torch.min(tmul).detach()))  # np.max([r, -r])
+v_border = np.max(np.concatenate((reps_te, -reps_te))) + 0.02
+print("vb",v_border)
+for ind_range, name in (
+        (indices_b, "qcd"), (indices_s, "top"), (extraord_i_relhigh, "rel_high"), (extraord_i_rellow, "rel_low"),
+        (extraord_i_rephigh, "rep_high"), (extraord_i_replow, "rep_low"), (extraord_i_fcnhigh, "fcn_high")):
+    for i in ind_range:
+        i = int(i)
+        x = reps_te[i, :]
+        x = torch.Tensor(x)  # .view(-1, 1)
 
-    d = np.arange(200)
-    #x = x[175:]
-    # r = R[175:]
-    #r = R[175:]
-    r = np.array([s.detach().numpy() for s in R]).squeeze()
+        R = torch.mul(x, fcn.layer.weight)
 
-    # , vmin=-torch.max(torch.Tensor([r,-r])), vmax=torch.max(torch.Tensor([r,-r]))
-    plt.scatter(d, x, c=r, vmin=-np.max([r, -r]), vmax=np.max([r, -r]), cmap="bwr")
-    cbar = plt.colorbar(shrink=0.9)
-    cbar.set_label("relevance wrt. top classification")
-    plt.gca().xaxis.grid(True)
-    plt.xlabel("representation dimension")
-    plt.ylabel("value in representation")
-    plt.suptitle(f"feature relevance of jet representation for classification")
-    plt.title(f"true:{telab[i]} fcn:{out_dat[i, 0]:.2f}")
-    plt.tight_layout()
-    plt.savefig(expt_dir + f"relevance_{j}.pdf")
-    plt.show()
+        d = np.arange(200)
+        r = np.array([s.detach().numpy() for s in R]).squeeze()
 
-    # img = np.reshape(x, (40, 40))
-    # fig, ax = plt.subplots(1, 2, figsize=(7, 4))
-    # ax1, ax2 = ax
-#
-# n1 = ax1.imshow(np.abs(img), cmap='Reds')
-# n2 = ax2.imshow(n_p-n_n, cmap='bwr', vmin=-np.max([np.abs(n_p), np.abs(n_n)]), vmax=np.max([np.abs(n_p), np.abs(n_n)]))
-# ax1.title.set_text("original jet image")
-# ax2.title.set_text("'relevance'")
-# plt.suptitle("true label: " + str(telab[i]) + "      fcn label: " + str(round(out_dat[i, 0], 3)))
-# plt.colorbar(n1, ax=ax1, shrink=0.7)  # #location='left', anchor=(0, 0.3), shrink=0.7)
-# plt.colorbar(n2, ax=ax2, shrink=0.7)  # #location='right', anchor=(0, 0.3), shrink=0.7)
-
-# sp = round(n_p.sum(), 2)
-# print(sp)
-# plt.figtext(0.7, 0.01, f"relevance balance {n_p.sum():.2f} - {n_n.sum():.2f} = {np.sum(n_p-n_n):.2f}", ha="center", fontsize=10)
-# fig.tight_layout()
-# fig.savefig(expt_dir + f"relevance_{j}.pdf")
-# fig.show()
+        plt.scatter(d, x, c=r, vmin=-r_border, vmax=r_border, cmap="bwr")#, cmap="Spectral_r")
+        plt.ylim(-v_border, v_border)
+        cbar = plt.colorbar(shrink=0.9)
+        cbar.set_label("relevance wrt. top classification")
+        plt.gca().xaxis.grid(True)
+        plt.xlabel("representation dimension")
+        plt.ylabel("value in representation")
+        plt.suptitle(f"feature relevance of jet representation for classification")
+        plt.title(f"{name}    true:{telab[i]}    fcn:{float(fcn(x)[0]):.2f}    $\sigma$(fcn):{float(sigmoid(fcn(x))[0]):.2f}")
+        plt.tight_layout()
+        plt.savefig(expt_dir + f"relevance_{name}_{i}.pdf")
+        plt.show()
 
 print("relevance plots saved.", file=logfile, flush=True)
 
@@ -162,7 +152,7 @@ fig, ax = plt.subplots(1, 3, figsize=(10, 3.5))
 plt.subplots_adjust(bottom=0.2)
 ax1, ax2, ax3 = ax
 
-#plt.scatter(d, x, c=r, vmin=-np.max([r, -r]), vmax=np.max([r, -r]), cmap="bwr")
+# plt.scatter(d, x, c=r, vmin=-np.max([r, -r]), vmax=np.max([r, -r]), cmap="bwr")
 n1 = ax1.scatter(np.arange(200), b, c="g")
 n2 = ax2.scatter(np.arange(200), s, c="g")
 n3 = ax3.scatter(np.arange(200), w, c="g")
@@ -176,16 +166,20 @@ plt.figtext(0.8, 0.01, "performance of weights \nauc: 0.922 imtafe: 18.2", ha="c
 # plt.colorbar(n1, ax=ax1, shrink=0.6)  # #location='left', anchor=(0, 0.3), shrink=0.7)
 # plt.colorbar(n2, ax=ax2, shrink=0.6)  # #location='right', anchor=(0, 0.3), shrink=0.7)
 # plt.colorbar(n3, ax=ax3, shrink=0.6)  # #location='right', anchor=(0, 0.3), shrink=0.7)
-#fig.tight_layout()
+# fig.tight_layout()
 fig.savefig(expt_dir + f"weights.pdf")
 fig.show()
 
-relevance_b = w*b
-relevance_s = w*s
+relevance_b = w * b
+relevance_s = w * s
 
 plt.figure(figsize=(14, 4))
-plt.scatter(np.arange(200), b, s=15, c=relevance_b, marker="s", label="mean value of qcd", vmin=-np.max([relevance_b, -relevance_b]), vmax=np.max([relevance_b, -relevance_b]), cmap="bwr")
-plt.scatter(np.arange(200), s, s=15, c=relevance_s, marker="^", label="mean value of top",     vmin=-np.max([relevance_s, -relevance_s]), vmax=np.max([relevance_s, -relevance_s]), cmap="bwr")
+r_border = np.max([relevance_b, -relevance_b, relevance_s, -relevance_s])
+
+plt.scatter(np.arange(200), b, s=20, c=relevance_b, marker="s", label="mean value qcd", vmin=-r_border,
+            vmax=r_border, cmap="bwr")
+plt.scatter(np.arange(200), s, s=20, c=relevance_s, marker="^", label="mean value top", vmin=-r_border,
+            vmax=r_border, cmap="bwr")
 plt.gca().xaxis.grid(True)
 cbar = plt.colorbar(shrink=0.9)
 cbar.set_label("relevance in linear classification")
@@ -193,8 +187,7 @@ leg = plt.legend()
 for marker in leg.legendHandles:
     marker.set_color('grey')
 plt.tight_layout()
+plt.savefig(expt_dir + "mean_reps_relevance.pdf")
 plt.show()
 
-
 print("input/model plot saved.", file=logfile, flush=True)
-
