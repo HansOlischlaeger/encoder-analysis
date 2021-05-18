@@ -3,6 +3,8 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import random
 import time
 
@@ -97,6 +99,16 @@ def relprop_3(a, layer, R, pos=True):
     R = a * c
     return R
 
+colormap = cm.get_cmap("bwr", 100)
+oneside = np.linspace(0, 1, 256) ** 0.8
+
+csamplespace = np.concatenate((-oneside[::-1], oneside)) / max(oneside) / 2 + 0.5
+# plt.plot(csamplespace)
+# plt.show()
+
+colors = colormap(csamplespace)
+colormap = ListedColormap(colors)
+
 
 sigmoid = nn.Sigmoid()
 
@@ -115,38 +127,55 @@ extraord_i_fcnhigh = torch.where(fcn(torch.Tensor(reps_te)) > 0.9)[0]
 r_border = max(abs(torch.max(tmul).detach()), abs(torch.min(tmul).detach()))  # np.max([r, -r])
 v_border = np.max(np.concatenate((reps_te, -reps_te))) + 0.02
 print("vb",v_border)
-for ind_range, name in (
-        (indices_b, "qcd"), (indices_s, "top"), (extraord_i_relhigh, "rel_high"), (extraord_i_rellow, "rel_low"),
-        (extraord_i_rephigh, "rep_high"), (extraord_i_replow, "rep_low"), (extraord_i_fcnhigh, "fcn_high")):
-    for i in ind_range:
-        i = int(i)
-        x = reps_te[i, :]
-        x = torch.Tensor(x)  # .view(-1, 1)
+plot_individual_jets = True
+if plot_individual_jets:
+    for ind_range, name in (
+            (indices_b, "qcd"), (indices_s, "top"), (extraord_i_relhigh, "rel_high"), (extraord_i_rellow, "rel_low"),
+            (extraord_i_rephigh, "rep_high"), (extraord_i_replow, "rep_low"), (extraord_i_fcnhigh, "fcn_high")):
+        for i in ind_range:
+            i = int(i)
+            x = reps_te[i, :]
+            x = torch.Tensor(x)  # .view(-1, 1)
 
-        R = torch.mul(x, fcn.layer.weight)
+            R = torch.mul(x, fcn.layer.weight)
 
-        d = np.arange(200)
-        r = np.array([s.detach().numpy() for s in R]).squeeze()
+            d = np.arange(200)
+            r = np.array([s.detach().numpy() for s in R]).squeeze()
 
-        plt.scatter(d, x, c=r, vmin=-r_border, vmax=r_border, cmap="bwr")#, cmap="Spectral_r")
-        plt.ylim(-v_border, v_border)
-        cbar = plt.colorbar(shrink=0.9)
-        cbar.set_label("relevance wrt. top classification")
-        plt.gca().xaxis.grid(True)
-        plt.xlabel("representation dimension")
-        plt.ylabel("value in representation")
-        plt.suptitle(f"feature relevance of jet representation for classification")
-        plt.title(f"{name}    true:{telab[i]}    fcn:{float(fcn(x)[0]):.2f}    $\sigma$(fcn):{float(sigmoid(fcn(x))[0]):.2f}")
-        plt.tight_layout()
-        plt.savefig(expt_dir + f"relevance_{name}_{i}.pdf")
-        plt.show()
+            plt.scatter(d, x, c=r, vmin=-r_border, vmax=r_border, cmap=colormap)#, cmap="Spectral_r")
+            plt.ylim(-v_border, v_border)
+            cbar = plt.colorbar(shrink=0.9)
+            cbar.set_label("relevance wrt. top classification")
+            plt.gca().xaxis.grid(True)
+            plt.xlabel("representation dimension")
+            plt.ylabel("value in representation")
+            plt.suptitle(f"feature relevance of jet representation for classification")
+            plt.title(f"{name}    z={float(fcn(x)[0]):.2f}    $\sigma$(z)={float(sigmoid(fcn(x))[0]):.2f}    true:{telab[i]}")
+            plt.tight_layout()
+            plt.savefig(expt_dir + f"relevance_{name}_{i}.pdf")
+            plt.show()
 
 print("relevance plots saved.", file=logfile, flush=True)
 
 w = fcn.layer.weight.detach().numpy().squeeze()
 
-b = reps_te[telab == 0].mean(axis=0)
-s = reps_te[telab == 1].mean(axis=0)
+b = np.median(reps_te[telab == 0], axis=0)
+s = np.median(reps_te[telab == 1], axis=0)
+fb = (b>s) * -b + (s>b) * b
+fs = (b>s) * -s + (s>b) * s
+# b_std = reps_te[telab == 0].std(axis=0)
+# s_std = reps_te[telab == 1].std(axis=0)
+#
+# print("qcd",reps_te[telab == 0].shape)
+#
+# print(((b>s) * -reps_te[telab == 0] + (s>b) * reps_te[telab == 0]).shape)
+# f_reps_b = (b>s) * -reps_te[telab == 0] + (s>b) * reps_te[telab == 0]
+# f_reps_s = (b>s) * -reps_te[telab == 1] + (s>b) * reps_te[telab == 1]
+# b75, b25 = np.percentile(f_reps_b, [75 ,50], axis=0)
+# s75, s25 = np.percentile(f_reps_s, [50 ,25], axis=0)
+# b_iqr = b75 - b25
+# s_iqr = s75 - s25
+
 
 fig, ax = plt.subplots(1, 3, figsize=(10, 3.5))
 plt.subplots_adjust(bottom=0.2)
@@ -168,19 +197,26 @@ plt.figtext(0.8, 0.01, "performance of weights \nauc: 0.922 imtafe: 18.2", ha="c
 # plt.colorbar(n3, ax=ax3, shrink=0.6)  # #location='right', anchor=(0, 0.3), shrink=0.7)
 # fig.tight_layout()
 fig.savefig(expt_dir + f"weights.pdf")
-fig.show()
+#fig.show()
+
+
+
+
 
 relevance_b = w * b
 relevance_s = w * s
 
-plt.figure(figsize=(14, 4))
+
+
+plt.figure(figsize=(9, 3.5))
 r_border = np.max([relevance_b, -relevance_b, relevance_s, -relevance_s])
 
 plt.scatter(np.arange(200), b, s=20, c=relevance_b, marker="s", label="mean value qcd", vmin=-r_border,
-            vmax=r_border, cmap="bwr")
+            vmax=r_border, cmap=colormap)
 plt.scatter(np.arange(200), s, s=20, c=relevance_s, marker="^", label="mean value top", vmin=-r_border,
-            vmax=r_border, cmap="bwr")
+            vmax=r_border, cmap=colormap)
 plt.gca().xaxis.grid(True)
+plt.xlabel("dimension $ \quad$")
 cbar = plt.colorbar(shrink=0.9)
 cbar.set_label("relevance in linear classification")
 leg = plt.legend()
@@ -191,3 +227,111 @@ plt.savefig(expt_dir + "mean_reps_relevance.pdf")
 plt.show()
 
 print("input/model plot saved.", file=logfile, flush=True)
+
+
+# # reordered mean reps, sorted by distance
+#
+# relevance_b = w * b
+# relevance_s = w * s
+#
+# dists = s-b
+# sorted_indices = np.argsort(dists)
+#
+# plt.figure(figsize=(9, 3.5))
+# r_border = np.max([relevance_b, -relevance_b, relevance_s, -relevance_s])
+#
+# plt.scatter(np.arange(200), b[sorted_indices], s=20, c=relevance_b[sorted_indices], marker="s", label="mean value qcd", vmin=-r_border,
+#             vmax=r_border, cmap=colormap)
+# plt.scatter(np.arange(200), s[sorted_indices], s=20, c=relevance_s[sorted_indices], marker="^", label="mean value top", vmin=-r_border,
+#             vmax=r_border, cmap=colormap)
+# plt.gca().xaxis.grid(True)
+# print(sorted_indices.shape, sorted_indices[::25].shape)
+# plt.gca().set_xticks(np.concatenate((np.arange(200)[::25], [199])))
+# plt.gca().set_xticklabels(np.concatenate((sorted_indices[::25], [sorted_indices[-1]])))
+# plt.xlabel("dimension sorted for distance of top to qcd mean | $sort(top  - qcd)$")
+# cbar = plt.colorbar(shrink=0.9)
+# cbar.set_label("relevance in linear classification")
+# leg = plt.legend()
+# for marker in leg.legendHandles:
+#     marker.set_color('grey')
+# plt.tight_layout()
+# plt.xticks(None)
+# plt.savefig(expt_dir + "mean_reps_relevance_distsorted.pdf")
+# plt.show()
+#
+# print("input/model plot saved.", file=logfile, flush=True)
+
+
+
+# reordered mean reps, sorted by absolute distance
+
+relevance_b = w * b
+relevance_s = w * s
+
+dists = abs(s-b)
+sorted_indices = np.argsort(dists)
+
+
+plt.figure(figsize=(9, 3.5))
+r_border = np.max([relevance_b, -relevance_b, relevance_s, -relevance_s])
+
+plt.scatter(np.arange(200), fb[sorted_indices], s=20, c=relevance_b[sorted_indices], marker="s", label="mean value qcd", vmin=-r_border,
+            vmax=r_border, cmap=colormap)
+plt.scatter(np.arange(200), fs[sorted_indices], s=20, c=relevance_s[sorted_indices], marker="^", label="mean value top", vmin=-r_border,
+            vmax=r_border, cmap=colormap)
+plt.gca().xaxis.grid(True)
+print(sorted_indices.shape, sorted_indices[::25].shape)
+plt.gca().set_xticks(np.concatenate((np.arange(200)[::25], [199])))
+plt.gca().set_xticklabels(np.concatenate((sorted_indices[::25], [sorted_indices[-1]])))
+plt.xlabel("dimension sorted for distance of top to qcd mean | $sort(|top  - qcd|)$")
+cbar = plt.colorbar(shrink=0.9)
+cbar.set_label("relevance in linear classification")
+leg = plt.legend()
+for marker in leg.legendHandles:
+    marker.set_color('grey')
+plt.tight_layout()
+plt.xticks(None)
+plt.savefig(expt_dir + "mean_reps_relevance_absdistsorted.pdf")
+plt.show()
+
+print("input/model plot saved.", file=logfile, flush=True)
+
+
+# reordered mean reps, sorted by max mean
+
+relevance_b = w * b
+relevance_s = w * s
+
+maxmean = np.amax(np.abs(np.array([b, s])), axis=0)
+print(maxmean.shape)
+sorted_indices = np.argsort(maxmean)
+
+plt.figure(figsize=(9, 3.5))
+r_border = np.max([relevance_b, -relevance_b, relevance_s, -relevance_s])
+
+# plt.errorbar(np.arange(200)[::-5], fs[sorted_indices][::-5], yerr=s_iqr[sorted_indices][::-5], fmt="", linestyle='None', capsize=4, label="IQR", ecolor="red")
+# plt.errorbar(np.arange(200)[::-5], fb[sorted_indices][::-5], yerr=b_iqr[sorted_indices][::-5], fmt="", linestyle='None', capsize=4, label="IQR", ecolor="blue")
+plt.scatter(np.arange(200), fb[sorted_indices], s=20, c=relevance_b[sorted_indices], marker="s", label="mean value qcd", vmin=-r_border,
+            vmax=r_border, cmap=colormap)
+plt.scatter(np.arange(200), fs[sorted_indices], s=20, c=relevance_s[sorted_indices], marker="^", label="mean value top", vmin=-r_border,
+            vmax=r_border, cmap=colormap)
+
+plt.gca().xaxis.grid(True)
+print(sorted_indices.shape, sorted_indices[::25].shape)
+plt.gca().set_xticks(np.concatenate((np.arange(200)[::25], [199])))
+plt.gca().set_xticklabels(np.concatenate((sorted_indices[::25], [sorted_indices[-1]])))
+plt.xlabel("dimension sorted for highest deviation from 0 | $sort(max(qcd,top))$")
+cbar = plt.colorbar(shrink=0.9)
+cbar.set_label("relevance in linear classification")
+leg = plt.legend(loc=2)
+for marker in leg.legendHandles:
+    marker.set_color('grey')
+plt.tight_layout()
+plt.xticks(None)
+plt.savefig(expt_dir + "mean_reps_relevance_maxmeansorted.pdf")
+plt.show()
+
+print("input/model plot saved.", file=logfile, flush=True)
+
+
+
